@@ -1,25 +1,22 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 
-// --- ЛОКАЛИЗАЦИЯ ---
 const i18n = {
     ru: {
-        viewMode: "ОБЫЧНЫЙ РЕЖИМ", editMode: "РЕЖИМ СТУДИИ",
-        editModeKey: "Меню", moveKey: "Полет", rotateKey: "Камера", actionKey: "Выбор / Спавн",
-        studioTitle: "СТУДИЯ", block: "КУБ", sphere: "ШАР", part: "СТЕНА (Статика)",
-        moveTab: "ДВИГАТЬ", scaleTab: "РАЗМЕР", rotateTab: "ПОВОРОТ",
-        posX: "Позиция X", posY: "Позиция Y", posZ: "Позиция Z",
-        scaleX: "Ширина X", scaleY: "Высота Y", scaleZ: "Длина Z", rotY: "Поворот Y",
-        deleteBtn: "УДАЛИТЬ"
+        viewMode: "ОБЫЧНЫЙ РЕЖИМ", editMode: "РЕЖИМ СТУДИИ", editModeKey: "Меню",
+        moveKey: "Полет", rotateKey: "Камера", actionKey: "Выбор / Спавн", studioTitle: "СТУДИЯ",
+        block: "КУБ", sphere: "ШАР", part: "СТЕНА (Статика)", moveTab: "ДВИГАТЬ",
+        scaleTab: "РАЗМЕР", rotateTab: "ПОВОРОТ", posX: "Позиция X", posY: "Позиция Y",
+        posZ: "Позиция Z", scaleX: "Ширина X", scaleY: "Высота Y", scaleZ: "Длина Z",
+        rotY: "Поворот Y", deleteBtn: "УДАЛИТЬ"
     },
     en: {
-        viewMode: "VIEW MODE", editMode: "STUDIO MODE",
-        editModeKey: "Menu", moveKey: "Fly", rotateKey: "Camera", actionKey: "Select / Spawn",
-        studioTitle: "STUDIO", block: "BLOCK", sphere: "SPHERE", part: "PART (Static)",
-        moveTab: "MOVE", scaleTab: "SCALE", rotateTab: "ROTATE",
-        posX: "Position X", posY: "Position Y", posZ: "Position Z",
-        scaleX: "Scale X", scaleY: "Scale Y", scaleZ: "Scale Z", rotY: "Rotation Y",
-        deleteBtn: "DELETE"
+        viewMode: "VIEW MODE", editMode: "STUDIO MODE", editModeKey: "Menu",
+        moveKey: "Fly", rotateKey: "Camera", actionKey: "Select / Spawn", studioTitle: "STUDIO",
+        block: "BLOCK", sphere: "SPHERE", part: "PART (Static)", moveTab: "MOVE",
+        scaleTab: "SCALE", rotateTab: "ROTATE", posX: "Position X", posY: "Position Y",
+        posZ: "Position Z", scaleX: "Scale X", scaleY: "Scale Y", scaleZ: "Scale Z",
+        rotY: "Rotation Y", deleteBtn: "DELETE"
     }
 };
 
@@ -27,26 +24,7 @@ let currentLang = 'ru';
 let isBuildMode = false, selectedType = 'cube', selectedObject = null;
 let objects = [], keys = {}, camYaw = 0, camPitch = 0;
 
-// Инициализация UI
-function updateUI() {
-    const data = i18n[currentLang];
-    document.querySelectorAll('[data-key]').forEach(el => {
-        const key = el.getAttribute('data-key');
-        if(data[key]) el.innerText = data[key];
-    });
-    document.getElementById('mode-indicator').innerText = isBuildMode ? data.editMode : data.viewMode;
-}
-
-// Переключение языка
-document.getElementById('btn-ru').onclick = () => { currentLang = 'ru'; updateLangBtns(); updateUI(); };
-document.getElementById('btn-en').onclick = () => { currentLang = 'en'; updateLangBtns(); updateUI(); };
-
-function updateLangBtns() {
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + currentLang).classList.add('active');
-}
-
-// --- THREE.JS & PHYSICS ---
+// --- ИНИЦИАЛИЗАЦИЯ СЦЕНЫ ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 50000);
 camera.position.set(100, 100, 100);
@@ -59,25 +37,63 @@ document.body.appendChild(renderer.domElement);
 const world = new CANNON.World();
 world.gravity.set(0, -40, 0);
 
-// Пол и Сетка
+// Свет
+scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(100, 200, 100);
+scene.add(sun);
+
+// Сетка пола
 const grid = new THREE.GridHelper(2000, 50, 0x444444, 0x222222);
 scene.add(grid);
 const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Box(new CANNON.Vec3(1000, 5, 1000)) });
 groundBody.position.set(0, -5, 0);
 world.addBody(groundBody);
 
-// Вкладки и инструменты
+// --- ЧЕРНАЯ ДЫРА ---
+const bhPos = new THREE.Vector3(0, 40, 0);
+const bhRadius = 6;
+
+// Тело дыры (черная сфера)
+const bhMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(bhRadius, 32, 32),
+    new THREE.MeshBasicMaterial({ color: 0x000000 })
+);
+bhMesh.position.copy(bhPos);
+scene.add(bhMesh);
+
+// Огненное кольцо
+const ringMesh = new THREE.Mesh(
+    new THREE.TorusGeometry(10, 0.3, 16, 100),
+    new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.8 })
+);
+ringMesh.position.copy(bhPos);
+ringMesh.rotation.x = Math.PI / 2;
+scene.add(ringMesh);
+
+// --- ФУНКЦИИ ИНТЕРФЕЙСА ---
+function updateUI() {
+    const data = i18n[currentLang];
+    document.querySelectorAll('[data-key]').forEach(el => {
+        const key = el.getAttribute('data-key');
+        if(data[key]) el.innerText = data[key];
+    });
+    document.getElementById('mode-indicator').innerText = isBuildMode ? data.editMode : data.viewMode;
+}
+
+document.getElementById('btn-ru').onclick = () => { currentLang = 'ru'; updateUI(); };
+document.getElementById('btn-en').onclick = () => { currentLang = 'en'; updateUI(); };
+
 window.setTab = (t) => {
     ['move', 'scale', 'rotate'].forEach(tab => document.getElementById('pane-'+tab).style.display = 'none');
     document.getElementById('pane-'+t).style.display = 'block';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('t-'+t).classList.add('active');
 };
-// Прокидываем в глобальную область для onclick
+
 document.getElementById('t-move').onclick = () => window.setTab('move');
 document.getElementById('t-scale').onclick = () => window.setTab('scale');
 document.getElementById('t-rotate').onclick = () => window.setTab('rotate');
-
 document.getElementById('btn-cube').onclick = () => setBuildType('cube');
 document.getElementById('btn-sphere').onclick = () => setBuildType('sphere');
 document.getElementById('btn-wall').onclick = () => setBuildType('wall');
@@ -95,6 +111,7 @@ document.getElementById('delete-btn').onclick = () => {
     selectedObject = null;
 };
 
+// --- СПАВН ОБЪЕКТОВ ---
 function spawn() {
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
@@ -103,7 +120,7 @@ function spawn() {
     raycaster.ray.intersectPlane(plane, pos);
 
     const color = document.getElementById('color-picker').value;
-    let geo, shape, mass = selectedType === 'wall' ? 0 : 2;
+    let geo, shape, mass = selectedType === 'wall' ? 0 : 5;
     
     if(selectedType === 'cube' || selectedType === 'wall') {
         geo = new THREE.BoxGeometry(10, 10, 10);
@@ -113,28 +130,21 @@ function spawn() {
         shape = new CANNON.Sphere(6);
     }
 
-    const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color, metalness: 0.1, roughness: 0.8}));
+    const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color}));
     const body = new CANNON.Body({ mass, shape });
-    body.position.set(pos.x, 5.1, pos.z);
+    body.position.set(pos.x, 10, pos.z);
 
     scene.add(mesh); world.addBody(body);
-    const obj = {mesh, body, type: selectedType};
-    objects.push(obj);
-    select(obj);
+    objects.push({mesh, body, type: selectedType});
 }
 
 function select(obj) {
     if(selectedObject) selectedObject.mesh.material.emissive.set(0x000000);
     selectedObject = obj;
-    if(obj) {
-        obj.mesh.material.emissive.set(0x440000);
-        document.getElementById('move-x').value = obj.body.position.x;
-        document.getElementById('move-y').value = obj.body.position.y;
-        document.getElementById('move-z').value = obj.body.position.z;
-    }
+    if(obj) obj.mesh.material.emissive.set(0x440000);
 }
 
-// Управление
+// --- УПРАВЛЕНИЕ ---
 window.addEventListener('mousedown', (e) => {
     if(!isBuildMode) return;
     if(e.button === 0) {
@@ -163,15 +173,13 @@ window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
 });
 window.addEventListener('keyup', (e) => keys[e.code] = false);
-
 window.addEventListener('contextmenu', e => e.preventDefault());
-scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-const sun = new THREE.DirectionalLight(0xffffff, 1);
-sun.position.set(100, 200, 100);
-scene.add(sun);
 
+// --- ГЛАВНЫЙ ЦИКЛ (ANIMATE) ---
 function animate() {
     requestAnimationFrame(animate);
+    
+    // Движение камеры
     const move = new THREE.Vector3();
     if(keys['KeyW']) move.z -= 1; if(keys['KeyS']) move.z += 1;
     if(keys['KeyA']) move.x -= 1; if(keys['KeyD']) move.x += 1;
@@ -180,29 +188,40 @@ function animate() {
     
     document.getElementById('coords').innerText = `${Math.round(camera.position.x)}, ${Math.round(camera.position.y)}, ${Math.round(camera.position.z)}`;
 
-    if(selectedObject) {
-        const mx = parseFloat(document.getElementById('move-x').value);
-        const my = parseFloat(document.getElementById('move-y').value);
-        const mz = parseFloat(document.getElementById('move-z').value);
-        selectedObject.body.position.set(mx, my, mz);
-        if(selectedObject.type !== 'wall') selectedObject.body.velocity.set(0,0,0);
+    // Эффект черной дыры
+    ringMesh.rotation.z += 0.05;
+    
+    for (let i = objects.length - 1; i >= 0; i--) {
+        const obj = objects[i];
+        
+        // Вектор от объекта к дыре
+        const diff = new CANNON.Vec3(bhPos.x - obj.body.position.x, bhPos.y - obj.body.position.y, bhPos.z - obj.body.position.z);
+        const dist = diff.length();
 
-        const sx = parseFloat(document.getElementById('scale-x').value);
-        const sy = parseFloat(document.getElementById('scale-y').value);
-        const sz = parseFloat(document.getElementById('scale-z').value);
-        selectedObject.mesh.scale.set(sx, sy, sz);
+        if (dist < 80 && obj.body.mass > 0) {
+            diff.normalize();
+            // Сила притяжения (чем ближе, тем сильнее)
+            const force = diff.scale(400 / (dist * 0.2));
+            obj.body.applyForce(force, obj.body.position);
 
-        const ry = parseFloat(document.getElementById('rotate-y').value);
-        selectedObject.body.quaternion.setFromEuler(0, ry, 0);
+            // Если засосало внутрь
+            if (dist < bhRadius + 2) {
+                scene.remove(obj.mesh);
+                world.removeBody(obj.body);
+                objects.splice(i, 1);
+                continue;
+            }
+        }
+
+        // Синхронизация физики и графики
+        obj.mesh.position.copy(obj.body.position);
+        obj.mesh.quaternion.copy(obj.body.quaternion);
     }
 
     world.step(1/60);
-    objects.forEach(o => {
-        o.mesh.position.copy(o.body.position);
-        o.mesh.quaternion.copy(o.body.quaternion);
-    });
     renderer.render(scene, camera);
 }
+
 updateUI();
 animate();
 
