@@ -2,71 +2,60 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My 3D World</title>
+    <title>Space Studio 3D</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="crosshair"></div>
-    
-    <div id="lang-panel">
-        <button class="lang-btn active" id="btn-ru">RU</button>
-        <button class="lang-btn" id="btn-en">EN</button>
-    </div>
-
     <div id="ui-layer">
-        <div id="mode-indicator" data-key="viewMode">ОБЫЧНЫЙ РЕЖИМ</div>
+        <div id="mode-indicator">ОБЫЧНЫЙ РЕЖИМ</div>
         <div id="coords">0, 0, 0</div>
     </div>
 
-    <div id="controls-panel">
-        <div><span class="key">Q</span> - <span data-key="editModeKey">Меню</span> | <span class="key">WASD</span> - <span data-key="moveKey">Полет</span></div>
-        <div><span class="key">ПКМ (Hold)</span> - <span data-key="rotateKey">Камера</span></div>
-        <div><span class="key">ЛКМ</span> - <span data-key="actionKey">Выбор / Спавн</span></div>
-    </div>
-
     <div id="side-panel">
-        <h2 data-key="studioTitle">СТУДИЯ</h2>
+        <h2>СТУДИЯ</h2>
         
-        <div id="btn-cube" class="obj-btn active" data-key="block">КУБ</div>
-        <div id="btn-sphere" class="obj-btn" data-key="sphere">ШАР</div>
-        <div id="btn-wall" class="obj-btn" data-key="part">СТЕНА (Статика)</div>
+        <div class="file-ops">
+            <button id="save-btn">💾 СОХРАНИТЬ</button>
+            <label for="load-file" class="load-label">📂 ЗАГРУЗИТЬ</label>
+            <input type="file" id="load-file" accept=".json">
+        </div>
+
+        <div class="obj-group">
+            <div id="btn-cube" class="obj-btn active">КУБ</div>
+            <div id="btn-sphere" class="obj-btn">ШАР</div>
+        </div>
 
         <div class="tab-menu">
-            <div id="t-move" class="tab-btn active" data-key="moveTab">ДВИГАТЬ</div>
-            <div id="t-scale" class="tab-btn" data-key="scaleTab">РАЗМЕР</div>
-            <div id="t-rotate" class="tab-btn" data-key="rotateTab">ПОВОРОТ</div>
+            <div id="t-move" class="tab-btn active">ПОЗИЦИЯ</div>
+            <div id="t-scale" class="tab-btn">МАСШТАБ</div>
         </div>
 
         <div class="control-box">
             <div id="pane-move">
-                <label data-key="posX">Позиция X</label><input type="range" id="move-x" min="-200" max="200" value="0">
-                <label data-key="posY">Позиция Y</label><input type="range" id="move-y" min="0" max="100" value="0">
-                <label data-key="posZ">Позиция Z</label><input type="range" id="move-z" min="-200" max="200" value="0">
+                <label>X</label><input type="range" id="move-x" min="-500" max="500" value="0">
+                <label>Y</label><input type="range" id="move-y" min="0" max="500" value="0">
+                <label>Z</label><input type="range" id="move-z" min="-500" max="500" value="0">
             </div>
             <div id="pane-scale" style="display:none">
-                <label data-key="scaleX">Ширина X</label><input type="range" id="scale-x" min="0.5" max="20" step="0.5" value="1">
-                <label data-key="scaleY">Высота Y</label><input type="range" id="scale-y" min="0.5" max="20" step="0.5" value="1">
-                <label data-key="scaleZ">Длина Z</label><input type="range" id="scale-z" min="0.5" max="20" step="0.5" value="1">
-            </div>
-            <div id="pane-rotate" style="display:none">
-                <label data-key="rotY">Поворот Y</label><input type="range" id="rotate-y" min="0" max="6.28" step="0.1" value="0">
+                <div class="num-row"><label>X:</label><input type="number" id="scale-x" step="0.1" value="1"></div>
+                <div class="num-row"><label>Y:</label><input type="number" id="scale-y" step="0.1" value="1"></div>
+                <div class="num-row"><label>Z:</label><input type="number" id="scale-z" step="0.1" value="1"></div>
             </div>
         </div>
 
-        <input type="color" id="color-picker" value="#ffffff">
-        <button id="delete-btn" class="delete-btn" data-key="deleteBtn">УДАЛИТЬ</button>
+        <input type="color" id="color-picker" value="#ff3333">
+        <button id="delete-btn" class="delete-btn">УДАЛИТЬ ОБЪЕКТ</button>
     </div>
 
     <script type="importmap">
-{
-    "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+        }
     }
-}
-</script>
+    </script>
     <script type="module" src="script.js"></script>
 </body>
-
 </html>
