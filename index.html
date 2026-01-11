@@ -14,23 +14,19 @@
 
     <div id="side-panel">
         <h2>СТУДИЯ</h2>
-        
         <div class="file-ops">
             <button id="save-btn">💾 СОХРАНИТЬ</button>
             <label for="load-file" class="load-label">📂 ЗАГРУЗИТЬ</label>
             <input type="file" id="load-file" accept=".json">
         </div>
-
         <div class="obj-group">
             <div id="btn-cube" class="obj-btn active">КУБ</div>
             <div id="btn-sphere" class="obj-btn">ШАР</div>
         </div>
-
         <div class="tab-menu">
             <div id="t-move" class="tab-btn active">ПОЗИЦИЯ</div>
             <div id="t-scale" class="tab-btn">МАСШТАБ</div>
         </div>
-
         <div class="control-box">
             <div id="pane-move">
                 <label>X</label><input type="range" id="move-x" min="-500" max="500" value="0">
@@ -43,9 +39,9 @@
                 <div class="num-row"><label>Z:</label><input type="number" id="scale-z" step="0.1" value="1"></div>
             </div>
         </div>
-
-        <input type="color" id="color-picker" value="#ff3333">
-        <button id="delete-btn" class="delete-btn">УДАЛИТЬ ОБЪЕКТ</button>
+        <input type="color" id="color-picker" value="#00aaff">
+        <button id="delete-btn" class="delete-btn">УДАЛИТЬ</button>
+        <button id="clear-all" style="background: #222; color: #888; border: 1px solid #444; margin-top: 5px; cursor: pointer;">ОЧИСТИТЬ ВСЁ</button>
     </div>
 
     <script type="importmap">
